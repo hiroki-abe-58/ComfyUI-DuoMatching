@@ -107,7 +107,7 @@ transformers' T5 numerics).
   The tiny model keeps the official width (1536, 12 heads; the pipeline's caches are sized for it) with one layer, 64 x 64 frames,
   and small stand-ins for the text encoder and the VAE.
 - `scripts/ci_queue_check.py`: a stock ComfyUI server with the pack, the tiny model on the CPU, the shipped workflow through the
-  queue: same seed gives the same decoded video, another seed a different one, a bad size fails, another size runs, Unload works.
+  queue: same seed gives the same generated frames (their SHA-256), another seed different ones, a bad size fails, another size runs, Unload works.
 - Both also pass with CUDA hidden (`CUDA_VISIBLE_DEVICES=-1`), as on the CPU-only CI runners.
 
 ## 6. CI
@@ -135,3 +135,8 @@ this pack's `requirements.txt`), `git clone` of this repository into `custom_nod
   development environment.
 - Installing this pack's requirements moved `huggingface-hub` from 2.2.0 to 1.33.0 (diffusers 0.41.0 requires `<2.0`); ComfyUI ran
   normally.
+
+Note on the CI queue check: on the Ubuntu runners, ComfyUI's Save Video sometimes encoded identical generated frames into MP4
+files that decode to different pixels (seen on 2026-10-19 in the DuoMatching CI, 4 of 12 jobs, with ComfyUI v0.38.0 and v0.41.0;
+the frames had the same SHA-256). The check therefore compares the generated frames, not the MP4 files. Locally on Windows the
+MP4 files of identical frames were byte-identical.

@@ -107,7 +107,7 @@ flash-attn is not needed. If it is installed, the official flash-attn path runs 
   length (see the table below).
 - **Size.** Width and height must be multiples of 16. The model was trained at 832 x 480; the official script accepts other sizes
   and so does the node (640 x 384 was checked against the official script).
-- **Seed.** The same model, prompt, seed, settings and environment give the same video (checked). The node seeds every video
+- **Seed.** The same model, prompt, seed, settings and environment give the same video frames (checked). The node seeds every video
   separately, which is what the official script does with `--seed N --shared_seed` (without `--shared_seed` it seeds once per
   run, so only the first prompt of a run matches). Different library versions give a different video for the same seed (see
   above).
