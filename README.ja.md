@@ -42,7 +42,7 @@ Windows 11、RTX 5090（32 GB）、ComfyUI v0.38.0：
   Python 3.10 / torch 2.8.0）：公式のファイル構成の小さなランダム生成器による CPU テスト、上流の固定コミットとの比較、公式手順との
   比較、CPU での実際の ComfyUI キュー。CI ではモデル（約 23 GB）をダウンロードしません。
 
-**未確認**：Linux / macOS の GPU、RTX 5090（32 GB）以外の GPU（特に AMD / Apple）、他の ComfyUI バージョン、flash-attn を入れた
+**未確認**：Linux / macOS の GPU、RTX 5090（32 GB）以外の GPU（特に AMD / Apple）、他の ComfyUI バージョンでの実モデル実行（v0.41.0 でも CI で CPU テストと実キュー確認を実行）、flash-attn を入れた
 環境、上流が指定する torch 2.6.0 そのもの、論文ベンチマークでの画質評価（公式出力の再現までを確認しています）。
 
 ## インストール
