@@ -7,7 +7,7 @@ Text-to-video in ComfyUI with the official **DuoMatching** model
 
 DuoMatching is a streaming Wan2.1-T2V-1.3B distilled from Wan2.1-T2V-14B. It generates a video frame by frame: 4 denoising steps
 for the first latent frame, then 2 steps for every later one, each frame attending to the cached earlier frames. Everything runs
-**inside the ComfyUI process**, on Windows and Linux, without flash-attn. The nodes never download anything.
+**inside the ComfyUI process** and needs no flash-attn, so it runs on Windows (checked) as well. The nodes never download anything.
 
 > **Unofficial.** This node pack is an independent integration. It is not affiliated with or endorsed by the DuoMatching
 > authors, by the Wan team (Alibaba) or by Comfy Org.
@@ -51,6 +51,9 @@ Windows 11, RTX 5090 (32 GB), ComfyUI v0.38.0 (details and raw numbers in [docs/
   libraries from frame to frame. This is the environment, not the code; the same environment gives the same video every time.
 - **Real jobs:** 5 s, 8 s and 10 s clips, two sizes, interrupt (and the next job after it), keep-loaded off, unload, and a size
   that is not a multiple of 16 (rejected before generating), all with the real weights.
+- **Clean install:** fresh ComfyUI v0.38.0, fresh Python 3.12 environment, `git clone` of this repository, `pip install -r
+  requirements.txt`, the model files checked with `tools/download_model.py` (SHA-256): the queue gives the same frames as the
+  development environment, and both shipped workflows run unchanged and save byte-identical MP4s.
 - **CI** (GitHub Actions; Ubuntu and Windows; Python 3.12 / torch 2.14.1, and Python 3.10 / torch 2.8.0 with upstream's diffusers,
   transformers and tokenizers versions): CPU tests with a tiny random generator in the official file layout, the vendored code
   compared with the pinned upstream commit, the runtime compared with the official steps, and a real ComfyUI queue on the CPU. CI
@@ -62,8 +65,8 @@ pack reproduces the official outputs; it does not re-evaluate the model).
 
 ## Install
 
-1. ComfyUI with the V3 node API (**v0.38.0** was used), Python 3.10+ and an NVIDIA GPU. The peak allocation was 12.7 GiB for a 5 s clip at 832 x 480 and 18.3 GiB for 10 s
-   (only a 32 GB card was tried). The text encoder (11 GB) stays in RAM unless the card has 40 GB free.
+1. ComfyUI with the V3 node API (**v0.38.0** was used), Python 3.10+ and an NVIDIA GPU. The peak allocation was 12.7 GiB for a 5 s clip at 832 x 480
+   and 18.3 GiB for 10 s (only a 32 GB card was tried). The text encoder (11 GB) stays in RAM unless the card has 40 GB free.
 2. Clone this repository into `ComfyUI/custom_nodes/` and install its requirements into ComfyUI's Python:
 
    ```
@@ -88,8 +91,9 @@ pack reproduces the official outputs; it does not re-evaluate the model).
 
    The folder name `Wan2.1-T2V-1.3B` is fixed (the official code looks it up by name). Another location works through
    `extra_model_paths.yaml` with the key `duomatching`. Any `.pt` file in that folder appears in the Loader's list. If you
-   already have the Wan2.1-T2V-1.3B folder (for example from ComfyUI-SGFPlus), you can link or copy it instead of downloading it
-   again, and run the script with `--verify-only` to check it.
+   already have the Wan2.1-T2V-1.3B files (for example from ComfyUI-SGFPlus), link or copy them into
+   `models/duomatching/Wan2.1-T2V-1.3B/` before running the script: files that are already there with the right content are
+   kept, not downloaded again (checked with hard links), and every file is still verified.
 
 4. Restart ComfyUI and open `workflows/gui/t2v_basic.json` (832 x 480, 5 s) or `workflows/gui/t2v_640x384_8s.json`
    (640 x 384, 8 s).
@@ -134,7 +138,9 @@ but its quality was not evaluated).
 - One DuoMatching model is resident at a time; loading another checkpoint frees the first.
 - RAM: the checkpoint (5.7 GB) is memory-mapped while loading; with `dynamic_swap` the text encoder (11 GB) stays in RAM.
 - Dependencies: the official model code is built on diffusers; the requirements ask for at least the versions upstream pins
-  (diffusers 0.38.0, transformers 4.57.1).
+  (diffusers 0.38.0, transformers 4.57.1). diffusers 0.41.0 (the current release when this was written) requires
+  `huggingface-hub<2.0`, so installing the requirements into a fresh ComfyUI 0.38.0 environment moves `huggingface-hub` from 2.2.0
+  to 1.33.0. ComfyUI itself ran normally with it here; check other custom nodes you use if they need 2.x.
 - Related: [ComfyUI-CausalForcing](https://github.com/hiroki-abe-58/ComfyUI-CausalForcing) (same author) runs the Causal Forcing
   and Causal Forcing++ checkpoints with their own official code in a WSL2 / Linux runtime. DuoMatching's code derives from
   Causal Forcing, but its repository and weights are separate; this pack runs them in-process.

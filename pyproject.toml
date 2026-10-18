@@ -1,6 +1,6 @@
 [project]
 name = "duomatching"
-description = "DuoMatching for ComfyUI: streaming text-to-video with the official DuoMatching model (Wan2.1-T2V-1.3B generating frame by frame, 4 denoising steps for the first latent frame and 2 for every later one). Runs in-process on Windows and Linux without flash-attn; matches the official inference script bit for bit in the same environment."
+description = "DuoMatching for ComfyUI: streaming text-to-video with the official DuoMatching model (Wan2.1-T2V-1.3B generating frame by frame, 4 denoising steps for the first latent frame and 2 for every later one). Runs in-process without flash-attn (checked on Windows); matches the official inference script bit for bit in the same environment."
 version = "0.1.0"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"

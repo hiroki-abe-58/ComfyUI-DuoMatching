@@ -109,3 +109,29 @@ transformers' T5 numerics).
 - `scripts/ci_queue_check.py`: a stock ComfyUI server with the pack, the tiny model on the CPU, the shipped workflow through the
   queue: same seed gives the same decoded video, another seed a different one, a bad size fails, another size runs, Unload works.
 - Both also pass with CUDA hidden (`CUDA_VISIBLE_DEVICES=-1`), as on the CPU-only CI runners.
+
+## 6. CI
+
+GitHub Actions (`.github/workflows/ci.yml`), CPU only, ComfyUI v0.38.0 and the upstream commit checked out at their pinned commits:
+
+- Ubuntu 24.04 and Windows, each with Python 3.12 / torch 2.14.1;
+- Ubuntu 24.04 with Python 3.10 / torch 2.8.0 and upstream's pinned diffusers 0.38.0, transformers 4.57.1 and tokenizers 0.22.2
+  (the lowest versions the requirements allow).
+
+Each job runs ruff, a scan for absolute local paths, the test suite with the references required (nothing may be skipped: 52
+tests) and the real-queue check with the tiny model. All three jobs passed on the first run (`c95ca38`).
+
+## 7. Clean install
+
+Fresh ComfyUI v0.38.0 clone, fresh Python 3.12 virtual environment (torch 2.14.1+cu130, then ComfyUI's `requirements.txt`, then
+this pack's `requirements.txt`), `git clone` of this repository into `custom_nodes`:
+
+- `tools/download_model.py --models-dir ComfyUI/models/duomatching` downloaded the small Wan2.1 files (configuration, tokenizer,
+  license) and verified all 11 files against `tools/model_files.sha256`. The DuoMatching checkpoint and the three large Wan2.1
+  files had been placed beforehand as hard links to the already downloaded files; the tool verified them and skipped the download.
+- Real queue, fox / seed 42, 832 x 480: 81 frames, 11.9 s, peak 12.73 GiB; **frames identical** to the development environment's
+  queue run (81 / 81).
+- Both shipped workflows unchanged: the saved MP4s of `t2v_basic` and `t2v_640x384_8s` are byte-identical to the ones from the
+  development environment.
+- Installing this pack's requirements moved `huggingface-hub` from 2.2.0 to 1.33.0 (diffusers 0.41.0 requires `<2.0`); ComfyUI ran
+  normally.

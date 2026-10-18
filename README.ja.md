@@ -33,6 +33,11 @@ Windows 11、RTX 5090（32 GB）、ComfyUI v0.38.0：
   数値差がフレームを追うごとに積み重なるためです。コードの差ではなく環境の差で、同じ環境なら毎回同じ動画になります。
 - **実モデルでの実行**：5 秒・8 秒・10 秒、2 種類のサイズ、中断（とその後の実行）、keep_loaded オフ、Unload、16 の倍数でない
   サイズ（生成前にエラー）。
+- **クリーンインストール**：新しい ComfyUI v0.38.0、新しい Python 3.12 環境、このリポジトリの `git clone`、`pip install -r
+  requirements.txt`、`tools/download_model.py` でのモデル確認（SHA-256）。キューの出力は開発環境と同じフレームになり、同梱
+  ワークフローは 2 本ともそのまま動いて、開発環境とバイト単位で同じ MP4 を保存しました。
+- 依存関係の注意：diffusers 0.41.0 が `huggingface-hub<2.0` を要求するため、新しい ComfyUI 0.38.0 環境に入れると
+  `huggingface-hub` が 2.2.0 から 1.33.0 に下がります（ComfyUI 自体は問題なく動作）。
 - **CI**（GitHub Actions、Ubuntu と Windows、Python 3.12 / torch 2.14.1、および上流と同じ diffusers / transformers / tokenizers の
   Python 3.10 / torch 2.8.0）：公式のファイル構成の小さなランダム生成器による CPU テスト、上流の固定コミットとの比較、公式手順との
   比較、CPU での実際の ComfyUI キュー。CI ではモデル（約 23 GB）をダウンロードしません。
