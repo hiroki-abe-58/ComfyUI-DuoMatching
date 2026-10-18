@@ -36,13 +36,16 @@ from tiny_model import SIZE, make_tiny_models  # noqa: E402
 NODE_IDS = {"DuoMatchingLoader", "DuoMatchingTextToVideo", "DuoMatchingUnload"}
 HOOK = '''"""CI only (written by ComfyUI-DuoMatching/scripts/ci_queue_check.py): run the DuoMatching nodes with the tiny test model on the CPU."""
 import functools
+import hashlib
 import importlib
 import importlib.util
+import json
 import os
 import sys
 
 RUNTIME = {runtime!r}
 TINY = {tiny!r}
+GENLOG = {genlog!r}
 
 
 class _Set:
@@ -74,6 +77,16 @@ class DuoMatchingCITiny:
             pipeline = importlib.import_module(runtime.__name__.rsplit(".", 1)[0] + ".vendor.dm.pipeline.causal_inference")
             runtime.make_handle = functools.partial(runtime.make_handle, device="cpu")
             tiny.use_tiny(pipeline, _Set())
+            generate = runtime.generate
+
+            def logged(loaded, prompt, seed, *args, **kwargs):
+                out = generate(loaded, prompt, seed, *args, **kwargs)
+                digest = hashlib.sha256(out["video_255"].float().numpy().tobytes()).hexdigest()[:16]
+                with open(GENLOG, "a", encoding="utf-8") as log:
+                    log.write(json.dumps({{"seed": int(seed), "frames": int(out["video_255"].shape[0]), "sha": digest}}) + "\\n")
+                return out
+
+            runtime.generate = logged  # the nodes call runtime.generate(...), so they go through this
             runtime._ci_tiny = True
         text = "tiny model active in " + runtime.__name__
         return {{"ui": {{"text": [text]}}, "result": (text,)}}
@@ -127,7 +140,8 @@ def main(argv=None) -> int:
         raise SystemExit(f"--keep-pack: {pack} is not installed")
     hook = comfy / "custom_nodes" / "zz_duomatching_ci_tiny"
     hook.mkdir(exist_ok=True)
-    (hook / "__init__.py").write_text(HOOK.format(runtime=str(pack / "duomatching_comfy" / "runtime.py"), tiny=str(ROOT / "tests" / "tiny_model.py")),
+    (hook / "__init__.py").write_text(HOOK.format(runtime=str(pack / "duomatching_comfy" / "runtime.py"), tiny=str(ROOT / "tests" / "tiny_model.py"),
+                                                  genlog=str(work / "generated.jsonl")),
                                       encoding="utf-8")
     models = work / "models" / "duomatching"
     _, checkpoint = make_tiny_models(models)
@@ -188,8 +202,12 @@ def main(argv=None) -> int:
             print("frames:", a.shape)
             if a.shape != (6, SIZE, SIZE, 3):
                 failures.append(f"unexpected video shape {a.shape}")
-            if not (a == b).all():
-                failures.append("the same seed gave different videos")
+            generated = [json.loads(line) for line in (work / "generated.jsonl").read_text(encoding="utf-8").splitlines()]
+            print("generated:", json.dumps(generated))  # seed1_a, seed2, seed1_b
+            if len(generated) < 3 or generated[0]["sha"] != generated[2]["sha"]:
+                failures.append("the same seed gave different generated frames")
+            elif not (a == b).all():
+                failures.append("the same seed gave the same generated frames but different saved MP4 files")
             if (a == other).all():
                 failures.append("different seeds gave the same video")
         texts = [json.loads(v[0]) for v in (report.get("text") or {}).values() if v and v[0].lstrip().startswith("{")]
