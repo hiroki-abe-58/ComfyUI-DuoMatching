@@ -1,0 +1,26 @@
+[project]
+name = "duomatching"
+description = "DuoMatching for ComfyUI: streaming text-to-video with the official DuoMatching model (Wan2.1-T2V-1.3B generating frame by frame, 4 denoising steps for the first latent frame and 2 for every later one). Runs in-process on Windows and Linux without flash-attn; matches the official inference script bit for bit in the same environment."
+version = "0.1.0"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+dependencies = ["diffusers>=0.38.0", "omegaconf", "ftfy", "regex", "einops", "transformers>=4.57.1"]
+
+[project.urls]
+Repository = "https://github.com/hiroki-abe-58/ComfyUI-DuoMatching"
+
+[tool.comfy]
+PublisherId = "hiroki-abe-58"
+DisplayName = "DuoMatching for ComfyUI"
+Icon = ""
+
+[tool.ruff]
+line-length = 180
+target-version = "py310"
+extend-exclude = ["duomatching_comfy/vendor/dm"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

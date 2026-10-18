@@ -1,0 +1,7 @@
+{
+  "1": {"class_type": "DuoMatchingLoader", "inputs": {"checkpoint": "duomatching.pt", "text_encoder": "auto", "keep_loaded": true}},
+  "2": {"class_type": "DuoMatchingTextToVideo", "inputs": {"model": ["1", 0], "prompt": "A drone flies slowly along a winding river through autumn forests, aerial view.", "seed": 7, "latent_frames": 33, "width": 640, "height": 384}},
+  "3": {"class_type": "CreateVideo", "inputs": {"images": ["2", 0], "fps": ["2", 1]}},
+  "4": {"class_type": "SaveVideo", "inputs": {"video": ["3", 0], "filename_prefix": "duomatching/t2v_640x384", "format": "auto", "codec": "auto"}},
+  "5": {"class_type": "PreviewAny", "inputs": {"source": ["2", 2]}}
+}
